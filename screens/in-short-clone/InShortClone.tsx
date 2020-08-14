@@ -1,8 +1,11 @@
-import React, { useState, useRef } from "react";
-import { StyleSheet, Text, View, Dimensions, Animated, StatusBar } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import { StyleSheet, Text, View, Dimensions, Animated, StatusBar, PanResponder } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { NewsDetails } from "./NewsDetails";
 
-const ARTICLES = [
+const InShortClone = () => {
+
+  const ARTICLES = [
     { id: 1, name: "one"},
     { id: 2, name: "two"},
     { id: 3, name: "three"},
@@ -13,47 +16,57 @@ const ARTICLES = [
 const winHeight = Dimensions.get("window").height;
 const winWidth = Dimensions.get("window").width;
 
+const position = new Animated.ValueXY();
+const [currentIndex, setCurrentIndex] = useState(0);
+
+const panResponder = PanResponder.create({
+  onStartShouldSetPanResponder: (e, gestureState) => true,
+  onPanResponderMove: (evt, gestureState) => {
+    position.setValue({y: gestureState.dy, x: 0});
+  },
+  onPanResponderRelease: (evt, gestureState) => {
+    if (-gestureState.dy > 50 && -gestureState.vy > 0.7) {
+      Animated.timing(position, {
+        toValue: ({x: 0, y: -winHeight}),
+        duration: 400,
+        useNativeDriver: false
+      }).start(() => {
+        const updated = currentIndex + 1;
+        setCurrentIndex(updated);
+        position.setValue({x: 0, y: 0});
+      });
+    } else {
+      Animated.spring(position, {
+        toValue: ({x: 0, y: 0}),
+        useNativeDriver: false
+      }).start()
+    }
+  }
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: StatusBar.currentHeight, 
-    position: "absolute", 
-    height: winHeight, 
-    width: winWidth
+    paddingTop: StatusBar.currentHeight
   },
 });
 
 
 const renderArticlesList = () => {
     return ARTICLES.map((item, index) => {
-        return (
-            <View key={item.id} style={styles.container}>
-                <View style={{ flex: 2, backgroundColor: "pink" }}></View>
-                <View style={{ flex: 3, backgroundColor: "white", padding: 15 }}>
-                    <Text>
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy text 
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy 
-                        text Lorem ipsum sum dummy text , 
-                        Lorem ipsum sum dummy text. 
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy text.
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy text 
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy 
-                        text Lorem ipsum sum dummy text , 
-                        Lorem ipsum sum dummy text. 
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy text.
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy text 
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy 
-                        text Lorem ipsum sum dummy text , 
-                        Lorem ipsum sum dummy text. 
-                        Lorem ipsum sum dummy text Lorem ipsum sum dummy text.
-                    </Text>
-                </View>
-            </View>
-        ) 
-    })
+        if (index < currentIndex) {
+          return null
+        }
+        if (currentIndex == index && index < ARTICLES.length - 1) {
+          return (
+            <NewsDetails key={item.id} item={item} position={position} panResponder={panResponder} />
+          ) 
+        } else {
+          return (<NewsDetails key={item.id} item={item} />)
+        }
+    }).reverse()
 }
 
-const InShortClone = () => {
   return (
     <View style={styles.container}>
     {renderArticlesList()}
