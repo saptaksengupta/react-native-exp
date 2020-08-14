@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import Home from "./screens/Home";
 import About from './screens/About';
+import InShortClone from './screens/in-short-clone/InShortClone';
 
 const Stack = createStackNavigator();
 
@@ -12,8 +13,8 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="About" component={About} />
+        <Stack.Screen name="Home" component={Home} options={{title: "demo", headerShown: false}} />
+        <Stack.Screen name="in-short-clone" component={InShortClone} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
